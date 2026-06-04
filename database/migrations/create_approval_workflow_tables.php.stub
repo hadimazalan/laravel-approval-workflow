@@ -1,0 +1,93 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        $tables = config('approval-workflow.tables');
+        $connection = config('approval-workflow.connection');
+
+        Schema::connection($connection)->create($tables['instances'], function (Blueprint $table) use ($tables) {
+            $table->id();
+            $table->morphs('approvable');
+            $table->string('name')->nullable();
+            $table->string('status')->default('pending')->index();
+            $table->unsignedInteger('current_level')->default(0);
+            $table->unsignedInteger('total_levels')->default(0);
+            $table->json('metadata')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('sla_due_at')->nullable()->index();
+            $table->timestamps();
+        });
+
+        Schema::connection($connection)->create($tables['steps'], function (Blueprint $table) use ($tables) {
+            $table->id();
+            $table->foreignId('instance_id')
+                ->constrained($tables['instances'])
+                ->cascadeOnDelete();
+            $table->unsignedInteger('level');
+            $table->string('name')->nullable();
+            $table->string('status')->default('pending')->index();
+            $table->unsignedInteger('sla_hours')->nullable();
+            $table->json('approvers')->nullable();
+            $table->json('metadata')->nullable();
+            $table->boolean('otp_required')->default(false);
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('decided_at')->nullable();
+            $table->timestamp('sla_due_at')->nullable()->index();
+            $table->timestamps();
+
+            $table->unique(['instance_id', 'level']);
+        });
+
+        Schema::connection($connection)->create($tables['actions'], function (Blueprint $table) use ($tables) {
+            $table->id();
+            $table->foreignId('instance_id')
+                ->constrained($tables['instances'])
+                ->cascadeOnDelete();
+            $table->foreignId('step_id')
+                ->nullable()
+                ->constrained($tables['steps'])
+                ->nullOnDelete();
+            $table->nullableMorphs('actor');
+            $table->string('type')->index();
+            $table->string('remarks')->nullable();
+            $table->json('context')->nullable();
+            $table->timestamp('occurred_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::connection($connection)->create($tables['delegations'], function (Blueprint $table) use ($tables) {
+            $table->id();
+            $table->foreignId('instance_id')
+                ->constrained($tables['instances'])
+                ->cascadeOnDelete();
+            $table->foreignId('step_id')
+                ->nullable()
+                ->constrained($tables['steps'])
+                ->nullOnDelete();
+            $table->nullableMorphs('from_user');
+            $table->nullableMorphs('to_user');
+            $table->string('reason')->nullable();
+            $table->json('metadata')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamp('revoked_at')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        $tables = config('approval-workflow.tables');
+        $connection = config('approval-workflow.connection');
+
+        Schema::connection($connection)->dropIfExists($tables['delegations']);
+        Schema::connection($connection)->dropIfExists($tables['actions']);
+        Schema::connection($connection)->dropIfExists($tables['steps']);
+        Schema::connection($connection)->dropIfExists($tables['instances']);
+    }
+};

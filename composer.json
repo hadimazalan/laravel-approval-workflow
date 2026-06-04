@@ -1,0 +1,59 @@
+{
+    "name": "hadimazalan/laravel-approval-workflow",
+    "description": "A reusable, headless Laravel package for multi-level approval workflows with delegation, OTP hooks, notifications, SLA tracking, and auditability.",
+    "keywords": [
+        "laravel",
+        "approval",
+        "workflow",
+        "multi-level",
+        "delegation",
+        "otp",
+        "audit",
+        "approval-workflow"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0",
+        "illuminate/notifications": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hadimazalan\\ApprovalWorkflow\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hadimazalan\\ApprovalWorkflow\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Hadimazalan\\ApprovalWorkflow\\ApprovalWorkflowServiceProvider"
+            ],
+            "aliases": {
+                "Approval": "Hadimazalan\\ApprovalWorkflow\\Facades\\Approval"
+            }
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
